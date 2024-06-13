@@ -12,6 +12,20 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 app.use(cors());
 app.use(express.json());
 
+// jwt token creation function 
+function createToken(user){
+  const token=jwt.sign(
+    {
+      email:user.email,
+    },
+    `${process.env.JWT_SECRET}`,
+    {
+      expiresIn: "10d"
+    }
+  );
+
+  return token;
+}
 
 
 // routes
@@ -36,8 +50,25 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+
+    const productManagementDb=client.db('product-management-dashboard-db');
+    const productsCollection=productManagementDb.collection('all-products');
+    const usersCollection=productManagementDb.collection('all-users');
    
-    
+    // user api 
+    app.post('/user',async(req,res)=>{
+      const user=req.body;
+      const token=createToken(user);
+      const isUserExist=await usersCollection.findOne({email:user.email});
+      if (isUserExist){
+        return res.send({
+          message: 'user already exists',
+          token
+        });
+      }
+      const result=await usersCollection.insertOne(user);
+      res.send({token});
+    })
 
     await client.db("admin").command({ ping: 1 });
     console.log(
