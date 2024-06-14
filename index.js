@@ -30,7 +30,7 @@ function createToken(user){
 // jwt token verify function
 function verifyToken(req, res, next) {
   const token = req.headers.authorization.split(" ")[1];
-  const verify = jwt.verify(token, "secret");
+  const verify = jwt.verify(token, `${process.env.JWT_SECRET}`);
   if (!verify?.email) {
     return res.send("You are not authorized");
   }
@@ -105,6 +105,11 @@ async function run() {
       res.send(result);
     })
 
+    app.post('/productadd', verifyToken, async (req, res) => {
+      const productData = req.body;
+      const result = await productsCollection.insertOne(productData);
+      res.send(result);
+    });
     app.delete('/products/:id',verifyToken,async(req,res)=>{
       const id=req.params.id;
       const result=await productsCollection.deleteOne({_id:new ObjectId(id)});
