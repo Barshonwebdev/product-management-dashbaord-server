@@ -6,6 +6,8 @@ const cors = require("cors");
 require("dotenv").config();
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
+const stripe = require("stripe")(process.env.PAYMENT_KEY);
+
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 // middleware
@@ -66,6 +68,7 @@ async function run() {
     const productManagementDb=client.db('product-management-dashboard-db');
     const productsCollection=productManagementDb.collection('all-products');
     const usersCollection=productManagementDb.collection('all-users');
+    const paymentCollection=productManagementDb.collection('payments');
    
     // user api 
     app.post('/user',async(req,res)=>{
@@ -142,6 +145,36 @@ async function run() {
       const result = await productsCollection.findOne({_id:new ObjectId(id)});
       res.send(result);
     });
+
+    // payment api 
+
+
+    // payment intent api
+    app.post('/create-payment-intent', async (req,res)=>{
+      const {price}=req.body;
+      const amount=price*100;
+            console.log(price,amount);
+
+      const paymentIntent= await stripe.paymentIntents.create({
+        amount:amount,
+        currency: 'usd',
+        payment_method_types: ['card'],
+      });
+
+      res.send({
+        clientSecret:paymentIntent.client_secret
+      })
+      
+    })
+
+    
+    app.post('/payment',async (req,res)=>{
+      const payment=req.body;
+      const insertedResult=await paymentCollection.insertOne(payment);
+
+      
+      res.send(insertedResult);
+    })
     
     await client.db("admin").command({ ping: 1 });
     console.log(
