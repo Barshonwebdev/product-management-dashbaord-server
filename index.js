@@ -11,11 +11,7 @@ const stripe = require("stripe")(process.env.PAYMENT_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 // middleware
-app.use(
-  cors({
-    origin: ["https://product-dashboard-b5ac0.web.app/", "https://checkout.stripe.com"],
-  })
-);
+app.use(cors());
 app.use(express.json());
 
 // jwt token creation function 
