@@ -27,6 +27,18 @@ function createToken(user){
   return token;
 }
 
+// jwt token verify function
+function verifyToken(req, res, next) {
+  const token = req.headers.authorization.split(" ")[1];
+  const verify = jwt.verify(token, "secret");
+  if (!verify?.email) {
+    return res.send("You are not authorized");
+  }
+  req.user = verify.email;
+  console.log(verify);
+  next();
+}
+
 
 // routes
 app.get("/", (req, res) => {
@@ -93,6 +105,11 @@ async function run() {
       res.send(result);
     })
 
+    app.delete('/products/:id',verifyToken,async(req,res)=>{
+      const id=req.params.id;
+      const result=await productsCollection.deleteOne({_id:new ObjectId(id)});
+      res.send(result);
+    })
     
     await client.db("admin").command({ ping: 1 });
     console.log(
