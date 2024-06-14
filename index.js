@@ -96,6 +96,7 @@ async function run() {
       const result=await productsCollection.find().toArray();
       res.send(result);
     })
+    
     app.get('/products/:email',async(req,res)=>{
       const email=req.params.email;
       const query={
@@ -104,10 +105,29 @@ async function run() {
       const result=await productsCollection.find(query).toArray();
       res.send(result);
     })
-
+    app.get('/products/edit/:id', async (req, res) => {
+      const id=req.params.id;
+      const result = await productsCollection.findOne({_id:new ObjectId(id)});
+      res.send(result);
+    });
     app.post('/productadd', verifyToken, async (req, res) => {
       const productData = req.body;
       const result = await productsCollection.insertOne(productData);
+      res.send(result);
+    });
+    app.patch("/editproduct/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedProduct = req.body;
+
+      const filter = {
+        _id: new ObjectId(id),
+      };
+
+      const updateDoc = {
+        $set: updatedProduct,
+      };
+
+      const result = await productsCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
     app.delete('/products/:id',verifyToken,async(req,res)=>{
