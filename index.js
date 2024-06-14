@@ -171,7 +171,9 @@ async function run() {
     app.post('/payment',async (req,res)=>{
       const payment=req.body;
       const insertedResult=await paymentCollection.insertOne(payment);
-
+      const stockUpdateQuery={_id:{$in:payment.product_id.find(id=>new ObjectId(id))}};
+      console.log(classSeatUpdateQuery);
+      const updatedstock=await productsCollection.updateOne(stockUpdateQuery,{$inc:{stock:-1}});
       
       res.send(insertedResult);
     })
